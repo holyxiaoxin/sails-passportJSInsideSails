@@ -2,6 +2,7 @@ var passport = require('passport'),
   LocalStrategy = require('passport-local').Strategy,
   HttpBasicStrategy = require('passport-http').BasicStrategy,
   bcrypt = require('bcrypt');
+  
 //helper functions
 function findById(id, fn) {
   User.findOne(id).exec(function (err, user) {
@@ -19,7 +20,7 @@ function findByUsername(u, fn) {
   }).exec(function (err, user) {
     // Error handling
     if (err) {
-      return fn(null, null);
+      return fn(err, null);
       // The User was found successfully!
     } else {
       return fn(null, user);
@@ -55,18 +56,22 @@ passport.use(new LocalStrategy(
       // indicate failure and set a flash message. Otherwise, return the
       // authenticated `user`.
       findByUsername(username, function (err, user) {
-        if (err)
-          return done(null, err);
+        if (err){
+//           console.log("Unknown user");
+          return done(err, false);
+        }          
         if (!user) {
-          return done(null, false, {
+//           console.log("Unknown user");
+          return done(err, false, {
             message: 'Unknown user ' + username
           });
         }
         bcrypt.compare(password, user.password, function (err, res) {
-          if (!res)
-            return done(null, false, {
+          if (!res){
+            return done(err, false, {
               message: 'Invalid Password'
             });
+          }
           var returnUser = {
             username: user.username,
             createdAt: user.createdAt,
@@ -75,7 +80,7 @@ passport.use(new LocalStrategy(
           return done(null, returnUser, {
             message: 'Logged In Successfully'
           });
-        });
+        })
       })
     });
   }
@@ -101,10 +106,11 @@ passport.use(new HttpBasicStrategy(
           });
         }
         bcrypt.compare(password, user.password, function (err, res) {
-          if (!res)
+          if (!res){
             return done(null, false, {
               message: 'Invalid Password'
             });
+          }
           var returnUser = {
             username: user.username,
             createdAt: user.createdAt,
@@ -118,3 +124,4 @@ passport.use(new HttpBasicStrategy(
     });
   }
 ));
+

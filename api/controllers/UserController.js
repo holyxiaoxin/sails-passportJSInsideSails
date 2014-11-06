@@ -51,15 +51,21 @@ module.exports = {
   },
   
   login: function (req, res) {
+    res.locals.flash = _.clone(req.session.flash);
     res.view();
+    req.session.flash = {};
   },
   
   process: function(req, res){
     passport.authenticate( ['local'] , function(err, user, info) {
       if ((err) || (!user)) {
-        return res.send({
-        message: 'login failed'
-        });
+        req.session.flash = {
+          message : "incorrect username or password"
+        }
+        return res.redirect('/user/login');
+//         return res.send({
+//         message: 'login failed'
+//         });
       }
       req.logIn(user, function(err) {
         if (err) res.send(err);

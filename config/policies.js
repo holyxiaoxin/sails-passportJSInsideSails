@@ -29,7 +29,7 @@ module.exports.policies = {
   '*': true,
   
   user : {
-    '*' : ['tryBasic'],
+    '*' : ['isAuthenticated'],
     process : true,
     login : true,
     register : true,
